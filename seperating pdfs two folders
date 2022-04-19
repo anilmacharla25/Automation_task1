@@ -1,0 +1,34 @@
+import pdfplumber
+import os,shutil
+
+path="C:\\sequelstring1.0\\task1\\New folder"
+files=os.chdir(path)
+def extract_all(path):
+    text1 = ""
+    with pdfplumber.open(path) as pdf:
+        pg = pdf.pages
+##        print(pg)
+        for i in range(len(pg)):
+            text = pg[i].extract_text()
+            text1 = text1+text+'\n------------------------------------new page------------------------------------------\n'
+####            print(' '.join(text.split()))
+##            text2 = (' '.join(text1.split()))
+            # print(text1)
+            # return text1
+    if 'PURVANCHAL VIDYUT VITRAN NIGAM LIMITED' in text1:
+        dest="C:\\sequelstring1.0\\task1\\PVVNL"
+        shutil.move(path,dest)
+        print('file moved to PVVNL')
+
+
+
+    elif 'MADHYANCHAL VIDYUT VITRAN NIGAM LIMITED' in text1:
+        dest="C:\\sequelstring1.0\\task1\\MVVNL"
+        shutil.move(path,dest)
+        print('file moved to MVVNL')
+        
+for file in os.listdir(path):
+    if file.endswith(".pdf") or file.endswith(".PDF"):
+##        print(file,'.............')
+        extract_all(file)
+        print('==='*25)
