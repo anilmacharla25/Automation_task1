@@ -1,0 +1,66 @@
+import re,os
+import json
+import datetime as dt
+import win32com.client
+outlook = win32com.client.Dispatch("Outlook.Application").GetNamespace("MAPI")
+inbox = outlook.GetDefaultFolder(6)
+messages = inbox.Items
+for message in messages:
+    sub=message.Subject
+    if "23365 - Enterprise Architect  - Washington, DC - Long term - w2 or c2c or 1099" in sub:
+        # print('ok')
+        # date = message.SentOn.strftime("%d-%m-%y")
+        # print(date)
+        from_add=message.Sender.GetExchangeUser().PrimarySmtpAddress
+        # print(from_add)
+        # date_time = dt.datetime.now()
+        # time=date_time.strftime('%m/%d/%Y %H:%M %p')
+        b = '2020-07-18 16:53:10.444000+00:00'
+        b = dt.datetime.strptime(b, '%Y-%m-%d %H:%M:%S.%f%z') 
+        time_rec=b.strftime('%m/%d/%y %H:%M:%S') 
+        # print(time_rec)
+        # print(message.To)
+        cc=message.CC
+        if cc=="":
+            cc="None"
+        bcc=message.BCC
+        if bcc=="":
+            bcc='None'
+        data=message.body
+        # print(data)
+
+print('--------------------extracted email body done ------------------------------------------')
+company_logo= re.search(r'(?s)(<)(.*?)(>)',data).group(0).replace('<','').replace('>','')
+# print(company_logo)
+job_title= re.search(r'(?s)Title.*?Location',data).group(0).replace('Title','').replace('Location','').strip()
+# print(job_title)
+location= re.search(r'(?s)Location.*?Length and Terms',data).group().replace("Location",'').replace('Length and Terms','').strip()
+# print(location)
+length_and_terms= re.search(r'(?s)Length and Terms.*?Job description',data).group().replace("Length and Terms:",'').replace('Job description','').strip()
+# print(length_and_terms)
+job_description= re.search(r'(?s)Job description.*?Our Contact Details',data).group().replace('Job description','').replace("Our Contact Details",'').strip()
+# print(job_description)
+our_contact_details=re.search(r'(?s)Our Contact Details.*?Our Payroll Policy',data).group().replace('Our Contact Details','').replace('Our Payroll Policy',"")
+our_contact_details=re.sub("(?s)<.*?>",'',our_contact_details)
+# print(our_contact_details)
+our_payroll_policy=re.search(r"(?s)Our Payroll Policy.*?Our C2C Policy",data).group().replace("Our Payroll Policy",'').replace('Our C2C Policy','').strip()
+# print(our_payroll_policy)
+our_c2c_policy=re.search(r'(?s)Our C2C Policy.*?Contact the recruiter working on this position',data).group().replace("Our C2C Policy",'').replace('Contact the recruiter working on this position','')
+# print(our_c2c_policy)
+recruiter_contact_info=re.search(r'(?s)Contact the recruiter working on this position.*?go to the Job description',data).group().replace("Contact the recruiter working on this position","").replace("go to the Job description","").strip()
+# print(recruiter_contact_info)
+company_details=re.search(r'(?s)go to the Job description.*?SafeUnsubscribe',data).group().replace("go to the Job description",'').replace("SafeUnsubscribe",'').strip()
+company_details=re.sub("(?s)<.*?>",'',company_details).strip()
+# print(company_details)
+
+
+
+print('-------------------------------now converting to json data-----------------------')
+data_dict={"company_logo":company_logo,"job_title":job_title,"location":location,"Length and Terms":length_and_terms,
+"Job Description":job_description,"Our Contact Details":our_contact_details,"our payroll ploicy":our_payroll_policy,"Our C2C Policy":our_c2c_policy,
+"Recruiter Contact information":recruiter_contact_info,"Company Details":company_details,"From Email":from_add,"Email received time":time_rec,"CC":cc,"BCC":bcc}
+# print(data_dict)
+json_obj=json.dumps(data_dict,indent=4)
+print(json_obj)
+
+
